@@ -15,6 +15,7 @@ services:
       DB_PASSWORD: "${DB_PASSWORD:-audibe}"
       DB_NAME: "${DB_NAME:-audibe}"
       DB_PORT: "${DB_PORT:-5432}"
+      DATABASE_URL: "postgresql://${DB_USER:-audibe}:${DB_PASSWORD:-audibe}@postgres:${DB_PORT:-5432}/${DB_NAME:-audibe}"
     depends_on:
       redis:
         condition: service_healthy
