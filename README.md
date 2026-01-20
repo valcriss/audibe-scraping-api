@@ -130,6 +130,19 @@ REDIS_ENABLED=false
 DB_ENABLED=false
 ```
 
+## How to use (Docker Compose)
+The production `docker-compose.yml` uses the published GitHub Container Registry image.
+
+1) Copy `.env.example` to `.env` and set the required values.
+2) Start the stack:
+
+```
+docker compose up -d
+```
+
+This will pull `ghcr.io/valcriss/audibe-scraping-api:latest`, start Redis and Postgres,
+run migrations in the container entrypoint, and expose the API on `PORT` (default 3000).
+
 ## Local development
 1) Start Redis and Postgres (optional):
 ```

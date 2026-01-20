@@ -68,40 +68,7 @@ export function buildSwaggerSpec() {
               description: 'Search results',
               content: {
                 'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: {
-                      query: {
-                        type: 'object',
-                        properties: {
-                          keywords: { type: 'string' },
-                          page: { type: 'integer' },
-                        },
-                        required: ['keywords', 'page'],
-                      },
-                      items: {
-                        type: 'array',
-                        items: {
-                          type: 'object',
-                          properties: {
-                            asin: { type: 'string' },
-                            title: { type: 'string' },
-                            authors: { type: 'array', items: { type: 'string' } },
-                            releaseDate: { type: 'string', format: 'date' },
-                          },
-                          required: ['asin', 'title', 'authors'],
-                        },
-                      },
-                      metadata: {
-                        type: 'object',
-                        properties: {
-                          fromCache: { type: 'boolean' },
-                        },
-                        required: ['fromCache'],
-                      },
-                    },
-                    required: ['query', 'items', 'metadata'],
-                  },
+                  schema: { $ref: '#/components/schemas/SearchResponse' },
                 },
               },
             },
@@ -134,46 +101,12 @@ export function buildSwaggerSpec() {
               description: 'Book details',
               content: {
                 'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: {
-                      asin: { type: 'string' },
-                      title: { type: 'string' },
-                      authors: { type: 'array', items: { type: 'string' } },
-                      narrators: { type: 'array', items: { type: 'string' } },
-                      publisher: { type: 'string' },
-                      releaseDate: { type: 'string', format: 'date' },
-                      language: { type: 'string' },
-                      runtimeMinutes: { type: 'integer' },
-                      series: {
-                        type: 'object',
-                        properties: {
-                          name: { type: 'string' },
-                          position: { type: 'integer' },
-                        },
-                      },
-                      categories: { type: 'array', items: { type: 'string' } },
-                      rating: { type: 'number' },
-                      ratingCount: { type: 'integer' },
-                      description: { type: 'string' },
-                      coverUrl: { type: 'string', format: 'uri' },
-                      thumbnails: { type: 'array', items: { type: 'string', format: 'uri' } },
-                      metadata: {
-                        type: 'object',
-                        properties: {
-                          fromCache: { type: 'boolean' },
-                          source: { type: 'string', enum: ['db', 'redis', 'scrape'] },
-                        },
-                        required: ['fromCache', 'source'],
-                      },
-                    },
-                    required: ['asin', 'title', 'authors', 'narrators', 'metadata'],
-                  },
+                  schema: { $ref: '#/components/schemas/BookDetailsResponse' },
                 },
               },
             },
             '400': {
-              description: 'Invalid ASIN or URL',
+              description: 'Invalid ASIN',
             },
             '404': {
               description: 'Book not found',
@@ -207,42 +140,8 @@ export function buildSwaggerSpec() {
                 'application/json': {
                   schema: {
                     oneOf: [
-                      {
-                        type: 'object',
-                        properties: {
-                          asin: { type: 'string' },
-                          title: { type: 'string' },
-                          authors: { type: 'array', items: { type: 'string' } },
-                          narrators: { type: 'array', items: { type: 'string' } },
-                          publisher: { type: 'string' },
-                          releaseDate: { type: 'string', format: 'date' },
-                          language: { type: 'string' },
-                          runtimeMinutes: { type: 'integer' },
-                          series: {
-                            type: 'object',
-                            properties: {
-                              name: { type: 'string' },
-                              position: { type: 'integer' },
-                            },
-                          },
-                          categories: { type: 'array', items: { type: 'string' } },
-                          rating: { type: 'number' },
-                          ratingCount: { type: 'integer' },
-                          description: { type: 'string' },
-                          coverUrl: { type: 'string', format: 'uri' },
-                          thumbnails: { type: 'array', items: { type: 'string', format: 'uri' } },
-                          metadata: {
-                            type: 'object',
-                            properties: {
-                              fromCache: { type: 'boolean' },
-                              source: { type: 'string', enum: ['db', 'redis', 'scrape'] },
-                            },
-                            required: ['fromCache', 'source'],
-                          },
-                        },
-                        required: ['asin', 'title', 'authors', 'narrators', 'metadata'],
-                      },
-                      { type: 'object', additionalProperties: false },
+                      { $ref: '#/components/schemas/BookDetailsResponse' },
+                      { $ref: '#/components/schemas/EmptyObject' },
                     ],
                   },
                 },
@@ -263,6 +162,91 @@ export function buildSwaggerSpec() {
     },
     components: {
       schemas: {
+        SearchItem: {
+          type: 'object',
+          properties: {
+            asin: { type: 'string' },
+            title: { type: 'string' },
+            authors: { type: 'array', items: { type: 'string' } },
+            releaseDate: { type: 'string', format: 'date' },
+          },
+          required: ['asin', 'title', 'authors'],
+        },
+        SearchResponse: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'object',
+              properties: {
+                keywords: { type: 'string' },
+                page: { type: 'integer' },
+              },
+              required: ['keywords', 'page'],
+            },
+            items: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/SearchItem' },
+            },
+            metadata: {
+              type: 'object',
+              properties: {
+                fromCache: { type: 'boolean' },
+              },
+              required: ['fromCache'],
+            },
+          },
+          required: ['query', 'items', 'metadata'],
+        },
+        BookDetails: {
+          type: 'object',
+          properties: {
+            asin: { type: 'string' },
+            title: { type: 'string' },
+            authors: { type: 'array', items: { type: 'string' } },
+            narrators: { type: 'array', items: { type: 'string' } },
+            publisher: { type: 'string' },
+            releaseDate: { type: 'string', format: 'date' },
+            language: { type: 'string' },
+            runtimeMinutes: { type: 'integer' },
+            series: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                position: { type: 'integer' },
+              },
+            },
+            categories: { type: 'array', items: { type: 'string' } },
+            rating: { type: 'number' },
+            ratingCount: { type: 'integer' },
+            description: { type: 'string' },
+            coverUrl: { type: 'string', format: 'uri' },
+            thumbnails: { type: 'array', items: { type: 'string', format: 'uri' } },
+          },
+          required: ['asin', 'title', 'authors', 'narrators'],
+        },
+        BookDetailsResponse: {
+          allOf: [
+            { $ref: '#/components/schemas/BookDetails' },
+            {
+              type: 'object',
+              properties: {
+                metadata: {
+                  type: 'object',
+                  properties: {
+                    fromCache: { type: 'boolean' },
+                    source: { type: 'string', enum: ['db', 'redis', 'scrape'] },
+                  },
+                  required: ['fromCache', 'source'],
+                },
+              },
+              required: ['metadata'],
+            },
+          ],
+        },
+        EmptyObject: {
+          type: 'object',
+          additionalProperties: false,
+        },
         ApiError: {
           type: 'object',
           properties: {
