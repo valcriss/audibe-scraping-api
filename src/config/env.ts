@@ -3,6 +3,7 @@ import { envSchema, type EnvConfig } from './schema';
 
 let cachedConfig: EnvConfig | null = null;
 
+/** Loads and validates environment configuration, with memoization. */
 export function loadConfig(): EnvConfig {
   if (cachedConfig) {
     return cachedConfig;

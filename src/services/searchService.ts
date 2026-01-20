@@ -21,10 +21,12 @@ export type SearchResponsePayload = {
   };
 };
 
+/** Builds the cache key for search responses. */
 function buildCacheKey(keywords: string, page: number): string {
   return `search:${keywords.toLowerCase()}:${page}`;
 }
 
+/** Maps parsed search items into the response payload format. */
 function toSearchItems(items: ReturnType<typeof parseSearchResults>): SearchResponsePayload['items'] {
   return items.slice(0, 5).map((item) => ({
     asin: item.asin,
@@ -34,6 +36,7 @@ function toSearchItems(items: ReturnType<typeof parseSearchResults>): SearchResp
   }));
 }
 
+/** Builds a full search response payload. */
 function buildSearchResponse(
   keywords: string,
   page: number,
@@ -50,6 +53,7 @@ function buildSearchResponse(
   };
 }
 
+/** Retrieves search results, using cache when available. */
 export async function getSearchResponse(
   keywords: string,
   page: number,

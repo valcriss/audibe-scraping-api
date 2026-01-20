@@ -1,5 +1,6 @@
 import { loadConfig } from '../config/env';
 
+/** Builds the OpenAPI specification document for the service. */
 export function buildSwaggerSpec() {
   const config = loadConfig();
 

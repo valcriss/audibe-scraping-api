@@ -2,10 +2,12 @@ import * as cheerio from 'cheerio';
 import type { BookDetails } from '../models/api';
 import { normalizeText, parseInteger, parseNumber } from '../utils/url';
 
+/** Deduplicates an array of strings while preserving truthy values. */
 function unique(values: string[]): string[] {
   return Array.from(new Set(values.filter(Boolean)));
 }
 
+/** Parses ISO-8601 duration text into total minutes. */
 function parseDurationToMinutes(value?: string): number | undefined {
   if (!value) {
     return undefined;
@@ -22,6 +24,7 @@ function parseDurationToMinutes(value?: string): number | undefined {
 
 type JsonDetails = Partial<BookDetails> | undefined;
 
+/** Extracts JSON-LD objects embedded in HTML. */
 function readJsonLd(html: string): Record<string, unknown>[] {
   const $ = cheerio.load(html);
   const items: Record<string, unknown>[] = [];
@@ -50,6 +53,7 @@ function readJsonLd(html: string): Record<string, unknown>[] {
   return items;
 }
 
+/** Maps JSON-LD book fields into a partial BookDetails object. */
 function extractJsonLdDetails(json: Record<string, unknown>): Partial<BookDetails> {
   const typeValue = json['@type'];
   const typeText = Array.isArray(typeValue) ? typeValue.join(' ') : String(typeValue || '');
@@ -95,6 +99,7 @@ function extractJsonLdDetails(json: Record<string, unknown>): Partial<BookDetail
   };
 }
 
+/** Finds the first JSON-LD entry that looks like book metadata. */
 function findJsonDetails(html: string): JsonDetails {
   const jsonLd = readJsonLd(html);
   return jsonLd
@@ -102,6 +107,7 @@ function findJsonDetails(html: string): JsonDetails {
     .find((entry) => entry.title || entry.authors?.length);
 }
 
+/** Extracts the book title from JSON-LD or the DOM. */
 function extractTitle($: cheerio.CheerioAPI, jsonDetails?: JsonDetails): string {
   return (
     jsonDetails?.title ||
@@ -110,6 +116,7 @@ function extractTitle($: cheerio.CheerioAPI, jsonDetails?: JsonDetails): string 
   );
 }
 
+/** Extracts author names from JSON-LD or the DOM. */
 function extractAuthors($: cheerio.CheerioAPI, jsonDetails?: JsonDetails): string[] {
   return unique([
     ...(jsonDetails?.authors ?? []),
@@ -119,6 +126,7 @@ function extractAuthors($: cheerio.CheerioAPI, jsonDetails?: JsonDetails): strin
   ]);
 }
 
+/** Extracts narrator names from the DOM. */
 function extractNarrators($: cheerio.CheerioAPI): string[] {
   return unique(
     $('li.narratorLabel a, span.narratorLabel a, a[href*="/narrator/"]')
@@ -127,6 +135,7 @@ function extractNarrators($: cheerio.CheerioAPI): string[] {
   );
 }
 
+/** Extracts the description from JSON-LD or meta tags. */
 function extractDescription($: cheerio.CheerioAPI, jsonDetails?: JsonDetails): string | undefined {
   return (
     jsonDetails?.description ||
@@ -135,6 +144,7 @@ function extractDescription($: cheerio.CheerioAPI, jsonDetails?: JsonDetails): s
   );
 }
 
+/** Extracts the primary cover image URL. */
 function extractCoverUrl($: cheerio.CheerioAPI, jsonDetails?: JsonDetails): string | undefined {
   return (
     jsonDetails?.coverUrl ||
@@ -144,6 +154,7 @@ function extractCoverUrl($: cheerio.CheerioAPI, jsonDetails?: JsonDetails): stri
   );
 }
 
+/** Extracts a small set of image thumbnails from the page. */
 function extractThumbnails($: cheerio.CheerioAPI): string[] | undefined {
   const thumbnails = unique(
     $('img')
@@ -154,6 +165,7 @@ function extractThumbnails($: cheerio.CheerioAPI): string[] | undefined {
   return thumbnails.length > 0 ? thumbnails : undefined;
 }
 
+/** Extracts the rating value from JSON-LD or DOM attributes. */
 function extractRating($: cheerio.CheerioAPI, jsonDetails?: JsonDetails): number | undefined {
   const ratingLabel =
     $('[aria-label*="etoile"], [aria-label*="star"], [aria-label*="\\u00e9toile"]')
@@ -164,6 +176,7 @@ function extractRating($: cheerio.CheerioAPI, jsonDetails?: JsonDetails): number
   return jsonDetails?.rating ?? parseNumber(ratingLabel);
 }
 
+/** Extracts the rating count from JSON-LD or DOM attributes. */
 function extractRatingCount($: cheerio.CheerioAPI, jsonDetails?: JsonDetails): number | undefined {
   const ratingCountText =
     $('[itemprop="ratingCount"]').attr('content') ||
@@ -172,6 +185,7 @@ function extractRatingCount($: cheerio.CheerioAPI, jsonDetails?: JsonDetails): n
   return jsonDetails?.ratingCount ?? parseInteger(ratingCountText);
 }
 
+/** Extracts breadcrumb categories from the DOM. */
 function extractCategories($: cheerio.CheerioAPI): string[] | undefined {
   const breadcrumbs = unique(
     $('nav[aria-label="Breadcrumb"] a, .bc-breadcrumb a')
@@ -182,6 +196,7 @@ function extractCategories($: cheerio.CheerioAPI): string[] | undefined {
   return breadcrumbs.length > 0 ? breadcrumbs : undefined;
 }
 
+/** Extracts series name and position when present. */
 function extractSeries($: cheerio.CheerioAPI): BookDetails['series'] | undefined {
   const seriesName = normalizeText($('.seriesLabel a, a[href*="/series/"]').first().text());
   const seriesPositionText = normalizeText($('.seriesLabel').text());
@@ -194,6 +209,7 @@ function extractSeries($: cheerio.CheerioAPI): BookDetails['series'] | undefined
     : undefined;
 }
 
+/** Parses book details from an Audible details page HTML. */
 export function parseBookDetails(asin: string, html: string): BookDetails {
   const $ = cheerio.load(html);
 

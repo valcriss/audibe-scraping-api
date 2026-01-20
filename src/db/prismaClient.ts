@@ -4,6 +4,7 @@ import { loadConfig } from '../config/env';
 let client: PrismaClient | null = null;
 let connecting: Promise<PrismaClient | null> | null = null;
 
+/** Builds a database URL from environment variables. */
 function buildDatabaseUrl() {
   const config = loadConfig();
   const user = encodeURIComponent(config.DB_USER || '');
@@ -13,6 +14,7 @@ function buildDatabaseUrl() {
   return `postgresql://${user}:${password}@${host}:5432/${dbName}`;
 }
 
+/** Creates a Prisma client for the provided connection string. */
 function createPrismaClient(databaseUrl: string): PrismaClient {
   return new PrismaClient({
     datasources: {
@@ -21,11 +23,13 @@ function createPrismaClient(databaseUrl: string): PrismaClient {
   });
 }
 
+/** Connects and returns a Prisma client instance. */
 async function connectPrisma(clientInstance: PrismaClient): Promise<PrismaClient> {
   await clientInstance.$connect();
   return clientInstance;
 }
 
+/** Returns a singleton Prisma client when database access is enabled. */
 export async function getPrismaClient(): Promise<PrismaClient | null> {
   const config = loadConfig();
   if (!config.DB_ENABLED) {

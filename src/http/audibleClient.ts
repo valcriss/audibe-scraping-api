@@ -3,6 +3,7 @@ import { loadConfig } from '../config/env';
 import { outboundLimiter } from './outboundLimiter';
 import type { ApiErrorCode } from '../models/api';
 
+/** Represents an HTTP error raised while calling upstream services. */
 export class HttpError extends Error {
   public status: number;
   public code: ApiErrorCode;
@@ -18,6 +19,7 @@ export class HttpError extends Error {
 
 const config = loadConfig();
 
+/** Builds the HTTP headers used for Audible requests. */
 function buildHeaders() {
   return {
     'User-Agent': config.AUDIBLE_USER_AGENT,
@@ -30,6 +32,7 @@ export type FetchHtmlOptions = {
   allowNotFound?: boolean;
 };
 
+/** Issues the HTTP request and returns the undici response. */
 async function readResponseText(url: string) {
   return request(url, {
     headers: buildHeaders(),
@@ -39,6 +42,7 @@ async function readResponseText(url: string) {
   });
 }
 
+/** Validates response status codes and throws structured HttpError instances. */
 function handleStatus(statusCode: number, options: FetchHtmlOptions) {
   if (statusCode === 404 && options.allowNotFound) {
     throw new HttpError('NOT_FOUND', 'Audible returned 404', 404);
@@ -52,6 +56,7 @@ function handleStatus(statusCode: number, options: FetchHtmlOptions) {
   }
 }
 
+/** Fetches HTML from Audible with rate limiting and error handling. */
 export async function fetchHtml(url: string, options: FetchHtmlOptions = {}): Promise<string> {
   return outboundLimiter.schedule(async () => {
     const response = await readResponseText(url);

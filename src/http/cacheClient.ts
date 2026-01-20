@@ -6,15 +6,18 @@ type RedisClient = ReturnType<typeof createClient>;
 let client: RedisClient | null = null;
 let connecting: Promise<RedisClient> | null = null;
 
+/** Creates a Redis client for the provided connection string. */
 function createRedisClient(url: string): RedisClient {
   return createClient({ url });
 }
 
+/** Connects the Redis client and returns it. */
 async function connectRedis(clientInstance: RedisClient): Promise<RedisClient> {
   await clientInstance.connect();
   return clientInstance;
 }
 
+/** Returns a singleton Redis client when caching is enabled. */
 async function getClient(): Promise<RedisClient | null> {
   const config = loadConfig();
   if (!config.REDIS_ENABLED) {
@@ -43,6 +46,7 @@ async function getClient(): Promise<RedisClient | null> {
   return connecting;
 }
 
+/** Reads and parses cached JSON data, returning null on failures. */
 export async function getCached<T>(key: string): Promise<T | null> {
   try {
     const redis = await getClient();
@@ -59,6 +63,7 @@ export async function getCached<T>(key: string): Promise<T | null> {
   }
 }
 
+/** Writes JSON data to Redis with an optional TTL. */
 export async function setCached<T>(key: string, value: T, ttlSeconds?: number): Promise<void> {
   try {
     const redis = await getClient();
