@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -
 RUN npm ci --omit=dev --ignore-scripts
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=build /app/node_modules/@prisma ./node_modules/@prisma
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 EXPOSE 3000
